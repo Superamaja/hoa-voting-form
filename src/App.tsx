@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  where,
+  query,
+} from "firebase/firestore";
 
 function App() {
   const candidates = ["Puffy", "Brownie", "Connor", "Mimi"];
@@ -66,10 +73,18 @@ function App() {
     }
 
     // Check if the email is in the database
-    const querySnapshot = await getDocs(collection(db, "emails"));
-    const email_doc = querySnapshot.docs.find(
-      (doc) => doc.data().email === email,
-    );
+    let email_doc;
+    try {
+      const emailQuery = query(
+        collection(db, "emails"),
+        where("email", "==", email),
+      );
+      const querySnapshot = await getDocs(emailQuery);
+      email_doc = querySnapshot.docs[0];
+    } catch (error) {
+      handleError("Error checking email.");
+      return;
+    }
 
     if (!email_doc) {
       handleError("Your email is not registered to vote.");
