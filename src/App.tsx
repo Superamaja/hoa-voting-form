@@ -31,6 +31,9 @@ function App() {
   };
 
   const getAnalytics = async () => {
+    setVotingResults({});
+    setEmailsVoted("");
+
     const querySnapshot = await getDocs(collection(db, "votes"));
     const votes = querySnapshot.docs.map((doc) => doc.data().vote);
 
@@ -42,7 +45,6 @@ function App() {
         analytics[vote] = 1;
       }
     }
-
     setVotingResults(analytics);
 
     const emailQuerySnapshot = await getDocs(collection(db, "emails"));
@@ -112,6 +114,9 @@ function App() {
           <h2 className="mb-6 text-2xl font-bold text-gray-900">
             Election Analytics
           </h2>
+          {Object.keys(votingResults).length === 0 ? (
+            <div>Loading...</div>
+          ) : null}
           {Object.entries(votingResults).map(([candidate, votes]) => (
             <div key={candidate} className="my-1">
               <span className="font-semibold">{candidate}</span>: {votes}
