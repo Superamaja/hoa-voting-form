@@ -19,7 +19,7 @@ function App() {
   const [displayAnalytics, setDisplayAnalytics] = useState(false);
   const [emailsVoted, setEmailsVoted] = useState<string>("");
   const [votingResults, setVotingResults] = useState<{ [key: string]: number }>(
-    {},
+    Object.fromEntries(candidates.map((candidate) => [candidate, 0])),
   );
 
   const handleError = (message: string) => {
@@ -44,7 +44,9 @@ function App() {
     const querySnapshot = await getDocs(collection(db, "votes"));
     const votes = querySnapshot.docs.map((doc) => doc.data().vote);
 
-    const analytics: { [key: string]: number } = {};
+    const analytics: { [key: string]: number } = Object.fromEntries(
+      candidates.map((candidate) => [candidate, 0]),
+    );
     for (const vote of votes) {
       if (analytics[vote]) {
         analytics[vote]++;
