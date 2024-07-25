@@ -61,12 +61,17 @@ function App() {
   };
 
   const handleSubmit = async () => {
-    if (!email) {
+    if (!email || email.trim() === "") {
       handleError("Please enter your email.");
       return;
     }
 
-    if (email === "dog") {
+    if (!email.includes("@") || !email.includes(".")) {
+      handleError("Please enter a valid email.");
+      return;
+    }
+
+    if (email === import.meta.env.VITE_ANALYTICS_PASSWORD) {
       setDisplayAnalytics(true);
       getAnalytics();
       return;
