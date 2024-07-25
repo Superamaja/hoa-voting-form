@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBMJx5B7YXVifgIEzrVAE14m1fzn0sr9kw",
-  authDomain: "hoa-voting-form.firebaseapp.com",
-  projectId: "hoa-voting-form",
-  storageBucket: "hoa-voting-form.appspot.com",
-  messagingSenderId: "489725458978",
-  appId: "1:489725458978:web:b5186defd1b9341fa7687b",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
