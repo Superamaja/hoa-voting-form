@@ -126,6 +126,12 @@ function App() {
             <span className="font-semibold">Emails Voted:</span> {emailsVoted}
           </div>
           <button
+            className="my-4 w-full rounded-lg bg-green-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300"
+            onClick={getAnalytics}
+          >
+            Refresh
+          </button>
+          <button
             className="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
             onClick={() => setDisplayAnalytics(false)}
           >
