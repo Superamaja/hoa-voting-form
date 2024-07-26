@@ -63,6 +63,9 @@ function App() {
   };
 
   const handleSubmit = async () => {
+    setError("");
+    setSuccess("");
+
     if (email === import.meta.env.VITE_ANALYTICS_PASSWORD) {
       setDisplayAnalytics(true);
       getAnalytics();
