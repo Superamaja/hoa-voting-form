@@ -14,6 +14,16 @@ function App() {
 
   const [email, setEmail] = useState("");
   const [votes, setVotes] = useState<string[]>([]);
+  const [checkedWriteIns, setCheckedWriteIns] = useState<boolean[]>([
+    false,
+    false,
+    false,
+  ]);
+  const [writeInCandidates, setWriteInCandidates] = useState<string[]>([
+    "",
+    "",
+    "",
+  ]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [displayAnalytics, setDisplayAnalytics] = useState(false);
@@ -66,6 +76,17 @@ function App() {
     setError("");
     setSuccess("");
 
+    const allVotes = [...votes];
+    for (let i = 0; i < writeInCandidates.length; i++) {
+      if (checkedWriteIns[i] && writeInCandidates[i].trim() === "") {
+        handleError("Please don't leave a checked write-in candidate blank.");
+        return;
+      }
+      if (checkedWriteIns[i]) {
+        allVotes.push(writeInCandidates[i].trim());
+      }
+    }
+
     if (email === import.meta.env.VITE_ANALYTICS_PASSWORD) {
       setDisplayAnalytics(true);
       getAnalytics();
@@ -108,11 +129,11 @@ function App() {
     }
 
     // Check if the user has selected 1-3 candidates
-    if (votes.length === 0) {
+    if (allVotes.length === 0) {
       handleError("Please select at least one candidate.");
       return;
     }
-    if (votes.length > 3) {
+    if (allVotes.length > 3) {
       handleError("Please select at most three candidates.");
       return;
     }
@@ -122,7 +143,7 @@ function App() {
       voted: true,
     });
 
-    for (const vote of votes) {
+    for (const vote of allVotes) {
       await addDoc(collection(db, "votes"), {
         vote,
       });
@@ -231,6 +252,49 @@ function App() {
                 >
                   {candidate}
                 </label>
+              </div>
+            ))}
+            {writeInCandidates.map((_, index) => (
+              <div key={`write-in-${index}`} className="my-1 flex">
+                <input
+                  type="checkbox"
+                  key={`checkbox-write-in-${index}`}
+                  className="my-auto mr-2 h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-blue-600 dark:focus:ring-offset-gray-800"
+                  id={`checkbox-write-in-${index}`}
+                  value={writeInCandidates[index]}
+                  onChange={(e) => {
+                    const newCheckedWriteIns = [...checkedWriteIns];
+                    newCheckedWriteIns[index] = e.target.checked;
+                    setCheckedWriteIns(newCheckedWriteIns);
+                  }}
+                  checked={checkedWriteIns[index]}
+                />
+                <input
+                  key={`write-in-${index}`}
+                  type="text"
+                  className="block w-52 rounded-lg border border-gray-300 bg-gray-50 px-2.5 py-1 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 disabled:cursor-not-allowed disabled:text-gray-500 disabled:opacity-50"
+                  value={writeInCandidates[index]}
+                  onChange={(e) => {
+                    const newWriteInCandidates = [...writeInCandidates];
+                    newWriteInCandidates[index] = e.target.value;
+
+                    // Capitalize the first letter of each word
+                    setWriteInCandidates(
+                      newWriteInCandidates.map((candidate) =>
+                        candidate
+                          .toLowerCase()
+                          .split(" ")
+                          .map(
+                            (word) =>
+                              word.charAt(0).toUpperCase() + word.slice(1),
+                          )
+                          .join(" "),
+                      ),
+                    );
+                  }}
+                  placeholder={`Write-in Candidate #${index + 1}`}
+                  disabled={!checkedWriteIns[index]}
+                />
               </div>
             ))}
           </div>
