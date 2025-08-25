@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 
 function App() {
-  const candidates = ["Ryan Dreier", "Alen Lin", "Daria Kavalierova"];
+  const candidates = ["Ryan Dreier", "Alen Lin", "Mari Conway"];
 
   const [email, setEmail] = useState("");
   const [votes, setVotes] = useState<string[]>([]);
