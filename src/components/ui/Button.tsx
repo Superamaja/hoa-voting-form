@@ -25,7 +25,7 @@ export const Button = ({
   ...props
 }: ButtonProps) => (
   <button
-    className={`focus-ring inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${VARIANTS[variant]} ${className}`}
+    className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold focus-ring transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${VARIANTS[variant]} ${className}`}
     disabled={disabled || isLoading}
     {...props}
   >

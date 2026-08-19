@@ -16,7 +16,7 @@ export const Alert = ({ message, onDismiss }: AlertProps) => (
       type="button"
       onClick={onDismiss}
       aria-label="Dismiss message"
-      className="focus-ring -m-1 rounded-lg p-1 text-rose-200/70 transition hover:text-rose-100"
+      className="-m-1 rounded-lg p-1 text-rose-200/70 focus-ring transition hover:text-rose-100"
     >
       <CloseIcon className="h-4 w-4" />
     </button>

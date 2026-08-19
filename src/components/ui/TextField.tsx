@@ -15,13 +15,13 @@ export const TextField = ({
   <div className="space-y-2">
     <label
       htmlFor={id}
-      className="block text-xs font-semibold uppercase tracking-wider text-slate-400"
+      className="block text-xs font-semibold tracking-wider text-slate-400 uppercase"
     >
       {label}
     </label>
     <input
       id={id}
-      className={`focus-ring w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white transition placeholder:text-slate-500 hover:border-white/20 focus-visible:border-brand-400/60 ${className}`}
+      className={`w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white focus-ring transition placeholder:text-slate-500 hover:border-white/20 focus-visible:border-brand-400/60 ${className}`}
       {...props}
     />
     {hint && <p className="text-xs text-slate-500">{hint}</p>}

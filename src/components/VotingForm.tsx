@@ -22,7 +22,7 @@ export const VotingForm = ({ onUnlockAnalytics }: VotingFormProps) => {
 
   if (ballot.isSubmitted) {
     return (
-      <section className="surface w-full max-w-lg animate-scale-in p-10 text-center">
+      <section className="w-full max-w-lg animate-scale-in surface p-10 text-center">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30">
           <BallotIcon className="h-8 w-8" />
         </div>
@@ -38,13 +38,13 @@ export const VotingForm = ({ onUnlockAnalytics }: VotingFormProps) => {
   }
 
   return (
-    <section className="surface w-full max-w-lg animate-fade-up p-8 sm:p-10">
+    <section className="w-full max-w-lg animate-fade-up surface p-8 sm:p-10">
       <header className="mb-8">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-brand-200">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold tracking-widest text-brand-200 uppercase">
           <BallotIcon className="h-3.5 w-3.5" />
           Official ballot
         </span>
-        <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-white">
+        <h1 className="mt-4 text-3xl leading-tight font-bold tracking-tight text-white">
           {ELECTION_TITLE}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">
@@ -77,7 +77,7 @@ export const VotingForm = ({ onUnlockAnalytics }: VotingFormProps) => {
 
         <fieldset className="space-y-3">
           <legend className="flex w-full items-center justify-between pb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
               Candidates
             </span>
             <span
@@ -101,7 +101,7 @@ export const VotingForm = ({ onUnlockAnalytics }: VotingFormProps) => {
             />
           ))}
 
-          <p className="pt-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <p className="pt-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
             Write-ins
           </p>
           {ballot.writeIns.map((writeIn, index) => (

@@ -22,7 +22,7 @@ export const WriteInRow = ({
       className={`flex items-center gap-3 rounded-2xl border px-4 py-2.5 transition-all duration-200 ${
         writeIn.enabled
           ? "border-brand-400/60 bg-brand-500/15"
-          : "border-white/12 border-dashed bg-white/[0.02] hover:border-white/25"
+          : "border-dashed border-white/12 bg-white/[0.02] hover:border-white/25"
       } ${isDisabled ? "opacity-40" : ""}`}
     >
       <label
@@ -55,7 +55,7 @@ export const WriteInRow = ({
         onChange={(e) => onChange(index, { name: e.target.value })}
         placeholder={`Write-in candidate #${index + 1}`}
         aria-label={`Write-in candidate ${index + 1}`}
-        className="focus-ring w-full bg-transparent text-sm font-medium text-white placeholder:text-slate-500 disabled:cursor-not-allowed"
+        className="w-full bg-transparent text-sm font-medium text-white focus-ring placeholder:text-slate-500 disabled:cursor-not-allowed"
       />
     </div>
   );

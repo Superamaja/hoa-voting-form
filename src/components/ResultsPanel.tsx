@@ -10,10 +10,10 @@ type StatProps = { label: string; value: string };
 
 const Stat = ({ label, value }: StatProps) => (
   <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+    <p className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
       {label}
     </p>
-    <p className="mt-1 text-xl font-bold tabular-nums text-white">{value}</p>
+    <p className="mt-1 text-xl font-bold text-white tabular-nums">{value}</p>
   </div>
 );
 
@@ -30,9 +30,9 @@ export const ResultsPanel = ({ onBack }: ResultsPanelProps) => {
       : "—";
 
   return (
-    <section className="surface w-full max-w-lg animate-fade-up p-8 sm:p-10">
+    <section className="w-full max-w-lg animate-fade-up surface p-8 sm:p-10">
       <header className="mb-8">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-brand-200">
+        <span className="text-[11px] font-semibold tracking-widest text-brand-200 uppercase">
           Live tally
         </span>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
@@ -69,7 +69,7 @@ export const ResultsPanel = ({ onBack }: ResultsPanelProps) => {
                   <span className="text-sm font-medium text-slate-100">
                     {candidate}
                   </span>
-                  <span className="text-sm font-bold tabular-nums text-white">
+                  <span className="text-sm font-bold text-white tabular-nums">
                     {votes}
                   </span>
                 </div>

@@ -1,0 +1,15 @@
+allowBuilds:
+  esbuild: true
+  protobufjs: true
+  "@firebase/util": true
+
+# Transitive deps pinned to patched releases (firebase / eslint / vite pull
+# older ranges). These are Node-only code paths that never reach the browser
+# bundle, but pinning keeps the advisory surface clean.
+overrides:
+  protobufjs: ">=7.6.5"
+  "@protobufjs/utf8": ">=1.1.1"
+  "@grpc/grpc-js": ">=1.14.4"
+  websocket-driver: ">=0.7.5"
+  flatted: ">=3.4.2"
+  yaml: ">=2.8.3"
