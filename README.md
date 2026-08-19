@@ -50,7 +50,7 @@ All variables live in `.env` (see `.env.example`):
 ```
 firestore.rules     Deployed Firestore security rules
 scripts/
-  voters.json       Homeowner roster (unit, name, email) — gitignored
+  voters.json          Voter emails — gitignored
   voters.example.json  Template for a new checkout
   seed-voters.mjs   Idempotent seeder for the `emails` collection (Admin SDK)
   deploy-rules.mjs  Deploys firestore.rules to the project in .env
@@ -95,13 +95,12 @@ ruleset — one would be usable by anyone.
 
 ## Voter roster
 
-`scripts/voters.json` is the source of truth for who may vote: one entry per
-unit with `unit`, `name`, and `email`. Only the email reaches Firestore — the
-unit and name are there so the roster stays readable.
+`scripts/voters.json` is the source of truth for who may vote: a flat JSON
+array of email addresses.
 
-It holds real names and addresses, so it is **gitignored and must never be
-committed**. Copy `scripts/voters.example.json` to `scripts/voters.json` on a
-new machine and fill it in from whatever is already in Firestore.
+It holds real addresses, so it is **gitignored and must never be committed**.
+Copy `scripts/voters.example.json` to `scripts/voters.json` on a new machine and
+fill it in from whatever is already in Firestore.
 
 ```bash
 pnpm seed:voters -- --dry-run   # report what would change
@@ -119,7 +118,7 @@ credentials that bypass rules. In rough order of effort:
 1. **Firebase console** — Firestore → `emails` → Add document, with `email`
    (string, lowercased) and `voted` (boolean, `false`). The console bypasses
    rules for project owners, so this needs no setup at all. Best for one or two
-   additions; add the same person to `scripts/voters.json` to keep it accurate.
+   additions; add the address to `scripts/voters.json` too, to keep it accurate.
 2. **`gcloud auth application-default login`** — a one-time browser sign-in that
    makes `pnpm seed:voters` work with no key file to manage.
 3. **A service-account key** — Firebase console → Project settings → Service

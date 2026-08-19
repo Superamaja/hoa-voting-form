@@ -1,7 +1,7 @@
 /**
- * Registers the voters listed in `scripts/voters.json` in the `emails`
- * collection. Emails are normalized the same way the ballot normalizes them,
- * and addresses already present are skipped, so the script is idempotent.
+ * Registers the emails listed in `scripts/voters.json` in the `emails`
+ * collection. Addresses are normalized the same way the ballot normalizes them,
+ * and ones already present are skipped, so the script is idempotent.
  *
  * `firestore.rules` denies roster creation to the browser, so this runs on the
  * Admin SDK, which bypasses rules. It needs Google credentials, from either
@@ -23,28 +23,44 @@ const isDryRun = process.argv.includes("--dry-run");
 
 const normalizeEmail = (value) => value.trim().toLowerCase();
 
-const requireEnv = (key, hint) => {
-  const value = process.env[key];
-  if (!value) throw new Error(`Missing ${key}. ${hint}`);
-  return value;
+const fail = (...lines) => {
+  for (const line of lines) console.error(line);
+  process.exit(1);
 };
 
 /**
  * Prefers an explicit service-account key, falling back to application-default
- * credentials so `gcloud auth application-default login` is enough.
+ * credentials so `gcloud auth application-default login` is enough. Resolves a
+ * token eagerly: the Firestore client reports missing credentials as an
+ * uncaught exception rather than a rejected request.
  */
 const resolveCredential = async () => {
   const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  return keyPath
+  const credential = keyPath
     ? cert(JSON.parse(await readFile(keyPath, "utf8")))
     : applicationDefault();
+
+  try {
+    await credential.getAccessToken();
+  } catch (error) {
+    fail(
+      `Could not authenticate with Google: ${error.message}`,
+      "",
+      "The Admin SDK needs credentials of its own. Either run",
+      "  gcloud auth application-default login",
+      "or set GOOGLE_APPLICATION_CREDENTIALS to a service-account key path.",
+      "`firebase login` does not count - that authenticates only the CLI.",
+      "To add one or two voters instead, use the Firebase console.",
+    );
+  }
+  return credential;
 };
 
+const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
+if (!projectId) fail("Missing VITE_FIREBASE_PROJECT_ID. Load it from .env.");
+
 const db = getFirestore(
-  initializeApp({
-    credential: await resolveCredential(),
-    projectId: requireEnv("VITE_FIREBASE_PROJECT_ID", "Load it from .env."),
-  }),
+  initializeApp({ credential: await resolveCredential(), projectId }),
 );
 
 const roster = JSON.parse(await readFile(ROSTER, "utf8"));
@@ -54,16 +70,15 @@ const registered = new Set(
 );
 
 let added = 0;
-for (const { unit, name, email } of roster) {
+for (const email of roster) {
   const address = normalizeEmail(email);
-  const label = `#${unit} ${name} <${address}>`;
 
   if (registered.has(address)) {
-    console.log(`skip  ${label} — already registered`);
+    console.log(`skip  ${address} - already registered`);
     continue;
   }
   if (isDryRun) {
-    console.log(`would add  ${label}`);
+    console.log(`would add  ${address}`);
     registered.add(address);
     continue;
   }
@@ -71,12 +86,12 @@ for (const { unit, name, email } of roster) {
   await db.collection(EMAILS).add({ email: address, voted: false });
   registered.add(address);
   added += 1;
-  console.log(`added ${label}`);
+  console.log(`added ${address}`);
 }
 
 console.log(
   isDryRun
-    ? "Dry run complete — no documents written."
+    ? "Dry run complete - no documents written."
     : `Done. ${added} voter(s) added, ${roster.length - added} skipped.`,
 );
 process.exit(0);

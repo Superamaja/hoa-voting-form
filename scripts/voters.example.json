@@ -1,4 +1,1 @@
-[
-  { "unit": 1, "name": "A. Homeowner", "email": "first@example.com" },
-  { "unit": 2, "name": "B. Homeowner", "email": "second@example.com" }
-]
+["first@example.com", "second@example.com"]
