@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import type { WriteIn } from "../hooks/useBallot";
+import { MAX_WRITE_IN_LENGTH } from "../lib/constants";
 import { CheckIcon } from "./ui/Icons";
 
 type WriteInRowProps = {
@@ -72,6 +73,7 @@ export const WriteInRow = ({
         onChange={(e) =>
           onChange(index, { enabled: true, name: e.target.value })
         }
+        maxLength={MAX_WRITE_IN_LENGTH}
         placeholder={`Write-in candidate #${index + 1}`}
         aria-label={`Write-in candidate ${index + 1}`}
         className="w-full bg-transparent text-sm font-medium text-white focus-ring placeholder:text-slate-500 disabled:cursor-not-allowed"

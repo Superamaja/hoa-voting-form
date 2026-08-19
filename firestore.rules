@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// Deployed with: pnpm rules:deploy
+//
+// This election has no user authentication, so these rules constrain *what* a
+// write may change, not *who* may change it. They prevent roster tampering and
+// ballot stuffing; they cannot prevent someone who knows a registered address
+// from voting on that person's behalf. Enable App Check to keep non-browser
+// traffic out.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /emails/{voterId} {
+      // The ballot looks a voter up by address, and the results panel counts
+      // registered voters and ballots cast.
+      allow read: if true;
+
+      // A voter may only flip their own `voted` flag from false to true. Every
+      // other field, including the address, must be untouched.
+      allow update: if resource.data.voted == false
+                    && request.resource.data.voted == true
+                    && request.resource.data
+                         .diff(resource.data)
+                         .affectedKeys()
+                         .hasOnly(['voted']);
+
+      // The roster is managed by `pnpm seed:voters`, which uses the Admin SDK
+      // and bypasses these rules.
+      allow create, delete: if false;
+    }
+
+    match /votes/{voteId} {
+      // The results panel tallies every vote.
+      allow read: if true;
+
+      // A ballot is a single `vote` string. The length cap mirrors
+      // MAX_WRITE_IN_LENGTH in src/lib/constants.ts.
+      allow create: if request.resource.data.keys().hasOnly(['vote'])
+                    && request.resource.data.vote is string
+                    && request.resource.data.vote.size() >= 1
+                    && request.resource.data.vote.size() <= 60;
+
+      // Recorded ballots are immutable.
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -14,13 +14,14 @@ cp .env.example .env   # fill in your Firebase credentials
 pnpm dev
 ```
 
-| Script             | Purpose                                      |
-| ------------------ | -------------------------------------------- |
-| `pnpm dev`         | Start the dev server                         |
-| `pnpm build`       | Typecheck and build for prod                 |
-| `pnpm lint`        | Run ESLint                                   |
-| `pnpm preview`     | Preview the production build                 |
-| `pnpm seed:voters` | Register the roster in `scripts/voters.json` |
+| Script              | Purpose                                      |
+| ------------------- | -------------------------------------------- |
+| `pnpm dev`          | Start the dev server                         |
+| `pnpm build`        | Typecheck and build for prod                 |
+| `pnpm lint`         | Run ESLint                                   |
+| `pnpm preview`      | Preview the production build                 |
+| `pnpm seed:voters`  | Register the roster in `scripts/voters.json` |
+| `pnpm rules:deploy` | Deploy `firestore.rules`                     |
 
 ## Environment
 
@@ -28,7 +29,12 @@ All variables live in `.env` (see `.env.example`):
 
 - `VITE_FIREBASE_*` — Firebase project credentials.
 - `VITE_ANALYTICS_PASSWORD` — entering this value in the email field opens the
-  results panel instead of submitting a ballot.
+  results panel instead of submitting a ballot. Note this ships in the client
+  bundle, so it gates the panel by obscurity only — it is not a secret.
+- `GOOGLE_APPLICATION_CREDENTIALS` — path to a service-account key JSON file,
+  used only by `pnpm seed:voters`. Create one under Firebase console → Project
+  settings → Service accounts → Generate new private key, and keep it out of
+  the repo.
 
 ## Firestore data model
 
@@ -36,14 +42,18 @@ All variables live in `.env` (see `.env.example`):
   A ballot is only accepted for an email that exists here with `voted: false`.
   Emails are stored trimmed and lowercased, matching `normalizeEmail`.
 - **`votes`** — one document per selection: `{ vote: string }`. A voter choosing
-  three candidates writes three documents.
+  three candidates writes three documents. The flag and the votes are committed
+  in a single batch, so a voter is never marked as having voted without their
+  ballot being counted.
 
 ## Project structure
 
 ```
+firestore.rules     Deployed Firestore security rules
 scripts/
   voters.json       Homeowner roster (unit, name, email)
-  seed-voters.mjs   Idempotent seeder for the `emails` collection
+  seed-voters.mjs   Idempotent seeder for the `emails` collection (Admin SDK)
+  deploy-rules.mjs  Deploys firestore.rules to the project in .env
 src/
   components/       Feature components (ballot, results, background)
     ui/             Presentational primitives (Button, Alert, TextField, Icons)
@@ -55,6 +65,33 @@ src/
 
 Components stay presentational: all Firestore access is isolated in
 `lib/votingService.ts`, and all ballot rules live in `hooks/useBallot.ts`.
+
+## Security rules
+
+`firestore.rules` is the deployed ruleset; `pnpm rules:deploy` pushes it using
+the project id from `.env`.
+
+The election has no user authentication, so the rules constrain **what** a write
+may change, never **who** may change it:
+
+- `emails` is readable (the ballot looks up an address, the results panel counts
+  turnout) but a client may only flip one voter's `voted` flag from `false` to
+  `true`. The address itself cannot be edited, and creates and deletes are
+  denied outright.
+- `votes` accepts a create carrying exactly one `vote` string of 1–60
+  characters — the cap `MAX_WRITE_IN_LENGTH` mirrors. Recorded ballots can never
+  be updated or deleted.
+- Every other path is denied.
+
+Two limits are worth stating plainly. Anyone can read the roster, and anyone who
+knows a registered address can vote on that person's behalf — only real
+authentication would close that, and rules cannot. Enabling **App Check** in the
+Firebase console raises the bar by rejecting traffic that does not come from the
+deployed app.
+
+Because roster writes are denied to the browser, `pnpm seed:voters` runs on the
+Admin SDK, which bypasses rules entirely. No admin carve-out exists in the
+ruleset — one would be usable by anyone.
 
 ## Voter roster
 
@@ -68,7 +105,8 @@ pnpm seed:voters                # write the missing voters
 ```
 
 The seeder normalizes each address and skips any that already exist, so it is
-safe to re-run after adding rows to the roster.
+safe to re-run after adding rows to the roster. It needs
+`GOOGLE_APPLICATION_CREDENTIALS`; the browser cannot create roster entries.
 
 ## Ballot rules
 

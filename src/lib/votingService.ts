@@ -1,10 +1,10 @@
 import {
-  addDoc,
   collection,
+  doc,
   getDocs,
   query,
-  updateDoc,
   where,
+  writeBatch,
   type DocumentReference,
 } from "firebase/firestore";
 import { db } from "../firebase";
@@ -29,21 +29,26 @@ export const findVoter = async (email: string): Promise<VoterRecord | null> => {
   const snapshot = await getDocs(
     query(collection(db, EMAILS), where("email", "==", email)),
   );
-  const doc = snapshot.docs[0];
-  if (!doc) return null;
+  const record = snapshot.docs[0];
+  if (!record) return null;
 
-  return { ref: doc.ref, hasVoted: Boolean(doc.data().voted) };
+  return { ref: record.ref, hasVoted: Boolean(record.data().voted) };
 };
 
-/** Records a ballot and flags the voter as having voted. */
+/**
+ * Records a ballot and flags the voter as having voted, atomically: a partial
+ * failure must never mark a voter as having voted without counting their votes.
+ */
 export const castBallot = async (
   voter: VoterRecord,
   selections: string[],
 ): Promise<void> => {
-  await updateDoc(voter.ref, { voted: true });
-  await Promise.all(
-    selections.map((vote) => addDoc(collection(db, VOTES), { vote })),
-  );
+  const batch = writeBatch(db);
+  batch.update(voter.ref, { voted: true });
+  for (const vote of selections) {
+    batch.set(doc(collection(db, VOTES)), { vote });
+  }
+  await batch.commit();
 };
 
 /** Aggregates every recorded vote plus voter turnout. */

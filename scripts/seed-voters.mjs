@@ -3,11 +3,15 @@
  * collection. Emails are normalized the same way the ballot normalizes them,
  * and addresses already present are skipped, so the script is idempotent.
  *
- * Usage: pnpm seed:voters [-- --dry-run]
+ * `firestore.rules` denies roster creation to the browser, so this runs on the
+ * Admin SDK, which bypasses rules. Point GOOGLE_APPLICATION_CREDENTIALS at a
+ * service-account key (see the README).
+ *
+ * Usage: pnpm seed:voters [--dry-run]
  */
 import { readFile } from "node:fs/promises";
-import { initializeApp } from "firebase/app";
-import { addDoc, collection, getDocs, getFirestore } from "firebase/firestore";
+import { cert, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 const EMAILS = "emails";
 const ROSTER = new URL("./voters.json", import.meta.url);
@@ -15,25 +19,25 @@ const isDryRun = process.argv.includes("--dry-run");
 
 const normalizeEmail = (value) => value.trim().toLowerCase();
 
-const requireEnv = (key) => {
+const requireEnv = (key, hint) => {
   const value = process.env[key];
-  if (!value) throw new Error(`Missing ${key}. Load it from .env.`);
+  if (!value) throw new Error(`Missing ${key}. ${hint}`);
   return value;
 };
 
+const keyPath = requireEnv(
+  "GOOGLE_APPLICATION_CREDENTIALS",
+  "Set it to the path of a service-account key JSON file.",
+);
 const db = getFirestore(
   initializeApp({
-    apiKey: requireEnv("VITE_FIREBASE_API_KEY"),
-    authDomain: requireEnv("VITE_FIREBASE_AUTH_DOMAIN"),
-    projectId: requireEnv("VITE_FIREBASE_PROJECT_ID"),
-    storageBucket: requireEnv("VITE_FIREBASE_STORAGE_BUCKET"),
-    messagingSenderId: requireEnv("VITE_FIREBASE_MESSAGING_SENDER_ID"),
-    appId: requireEnv("VITE_FIREBASE_APP_ID"),
+    credential: cert(JSON.parse(await readFile(keyPath, "utf8"))),
+    projectId: requireEnv("VITE_FIREBASE_PROJECT_ID", "Load it from .env."),
   }),
 );
 
 const roster = JSON.parse(await readFile(ROSTER, "utf8"));
-const snapshot = await getDocs(collection(db, EMAILS));
+const snapshot = await db.collection(EMAILS).get();
 const registered = new Set(
   snapshot.docs.map((doc) => normalizeEmail(String(doc.data().email ?? ""))),
 );
@@ -53,7 +57,7 @@ for (const { unit, name, email } of roster) {
     continue;
   }
 
-  await addDoc(collection(db, EMAILS), { email: address, voted: false });
+  await db.collection(EMAILS).add({ email: address, voted: false });
   registered.add(address);
   added += 1;
   console.log(`added ${label}`);

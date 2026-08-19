@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "seed:voters": "node --env-file=.env scripts/seed-voters.mjs"
+    "seed:voters": "node --env-file=.env scripts/seed-voters.mjs",
+    "rules:deploy": "node --env-file=.env scripts/deploy-rules.mjs"
   },
   "dependencies": {
     "firebase": "^12.17.1",
@@ -24,6 +25,7 @@
     "eslint": "^10.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
+    "firebase-admin": "^14.2.0",
     "globals": "^17.11.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
