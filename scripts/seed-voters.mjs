@@ -4,13 +4,17 @@
  * and addresses already present are skipped, so the script is idempotent.
  *
  * `firestore.rules` denies roster creation to the browser, so this runs on the
- * Admin SDK, which bypasses rules. Point GOOGLE_APPLICATION_CREDENTIALS at a
- * service-account key (see the README).
+ * Admin SDK, which bypasses rules. It needs Google credentials, from either
+ * `gcloud auth application-default login` or a service-account key path in
+ * GOOGLE_APPLICATION_CREDENTIALS. Note that `firebase login` does NOT count:
+ * the CLI keeps its own credential store that the Admin SDK never reads. To add
+ * a voter or two without either, use the Firebase console, which also bypasses
+ * rules.
  *
  * Usage: pnpm seed:voters [--dry-run]
  */
 import { readFile } from "node:fs/promises";
-import { cert, initializeApp } from "firebase-admin/app";
+import { applicationDefault, cert, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 const EMAILS = "emails";
@@ -25,13 +29,20 @@ const requireEnv = (key, hint) => {
   return value;
 };
 
-const keyPath = requireEnv(
-  "GOOGLE_APPLICATION_CREDENTIALS",
-  "Set it to the path of a service-account key JSON file.",
-);
+/**
+ * Prefers an explicit service-account key, falling back to application-default
+ * credentials so `gcloud auth application-default login` is enough.
+ */
+const resolveCredential = async () => {
+  const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  return keyPath
+    ? cert(JSON.parse(await readFile(keyPath, "utf8")))
+    : applicationDefault();
+};
+
 const db = getFirestore(
   initializeApp({
-    credential: cert(JSON.parse(await readFile(keyPath, "utf8"))),
+    credential: await resolveCredential(),
     projectId: requireEnv("VITE_FIREBASE_PROJECT_ID", "Load it from .env."),
   }),
 );

@@ -31,10 +31,9 @@ All variables live in `.env` (see `.env.example`):
 - `VITE_ANALYTICS_PASSWORD` — entering this value in the email field opens the
   results panel instead of submitting a ballot. Note this ships in the client
   bundle, so it gates the panel by obscurity only — it is not a secret.
-- `GOOGLE_APPLICATION_CREDENTIALS` — path to a service-account key JSON file,
-  used only by `pnpm seed:voters`. Create one under Firebase console → Project
-  settings → Service accounts → Generate new private key, and keep it out of
-  the repo.
+- `GOOGLE_APPLICATION_CREDENTIALS` — optional, used only by `pnpm seed:voters`:
+  the path to a service-account key JSON file. Leave it unset to fall back to
+  application-default credentials. See “Adding voters” below.
 
 ## Firestore data model
 
@@ -105,8 +104,26 @@ pnpm seed:voters                # write the missing voters
 ```
 
 The seeder normalizes each address and skips any that already exist, so it is
-safe to re-run after adding rows to the roster. It needs
-`GOOGLE_APPLICATION_CREDENTIALS`; the browser cannot create roster entries.
+safe to re-run after adding rows to the roster.
+
+### Adding voters
+
+The rules deny roster creation to the browser, so a roster change needs
+credentials that bypass rules. In rough order of effort:
+
+1. **Firebase console** — Firestore → `emails` → Add document, with `email`
+   (string, lowercased) and `voted` (boolean, `false`). The console bypasses
+   rules for project owners, so this needs no setup at all. Best for one or two
+   additions; add the same person to `scripts/voters.json` to keep it accurate.
+2. **`gcloud auth application-default login`** — a one-time browser sign-in that
+   makes `pnpm seed:voters` work with no key file to manage.
+3. **A service-account key** — Firebase console → Project settings → Service
+   accounts → Generate new private key, then point
+   `GOOGLE_APPLICATION_CREDENTIALS` at it. Keep it out of the repo.
+
+`firebase login` does **not** enable options 2 or 3: the CLI keeps its own
+credential store, which the Admin SDK never reads. It only authenticates
+`pnpm rules:deploy`.
 
 ## Ballot rules
 
