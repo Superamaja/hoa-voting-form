@@ -50,7 +50,8 @@ All variables live in `.env` (see `.env.example`):
 ```
 firestore.rules     Deployed Firestore security rules
 scripts/
-  voters.json       Homeowner roster (unit, name, email)
+  voters.json       Homeowner roster (unit, name, email) — gitignored
+  voters.example.json  Template for a new checkout
   seed-voters.mjs   Idempotent seeder for the `emails` collection (Admin SDK)
   deploy-rules.mjs  Deploys firestore.rules to the project in .env
 src/
@@ -97,6 +98,10 @@ ruleset — one would be usable by anyone.
 `scripts/voters.json` is the source of truth for who may vote: one entry per
 unit with `unit`, `name`, and `email`. Only the email reaches Firestore — the
 unit and name are there so the roster stays readable.
+
+It holds real names and addresses, so it is **gitignored and must never be
+committed**. Copy `scripts/voters.example.json` to `scripts/voters.json` on a
+new machine and fill it in from whatever is already in Firestore.
 
 ```bash
 pnpm seed:voters -- --dry-run   # report what would change

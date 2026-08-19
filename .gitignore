@@ -27,3 +27,6 @@ dist-ssr
 .env
 *service-account*.json
 serviceAccountKey.json
+
+# Homeowner roster (names + emails)
+scripts/voters.json
