@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:voters": "node --env-file=.env scripts/seed-voters.mjs"
   },
   "dependencies": {
     "firebase": "^12.17.1",

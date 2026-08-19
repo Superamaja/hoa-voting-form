@@ -14,12 +14,13 @@ cp .env.example .env   # fill in your Firebase credentials
 pnpm dev
 ```
 
-| Script         | Purpose                      |
-| -------------- | ---------------------------- |
-| `pnpm dev`     | Start the dev server         |
-| `pnpm build`   | Typecheck and build for prod |
-| `pnpm lint`    | Run ESLint                   |
-| `pnpm preview` | Preview the production build |
+| Script             | Purpose                                      |
+| ------------------ | -------------------------------------------- |
+| `pnpm dev`         | Start the dev server                         |
+| `pnpm build`       | Typecheck and build for prod                 |
+| `pnpm lint`        | Run ESLint                                   |
+| `pnpm preview`     | Preview the production build                 |
+| `pnpm seed:voters` | Register the roster in `scripts/voters.json` |
 
 ## Environment
 
@@ -33,12 +34,16 @@ All variables live in `.env` (see `.env.example`):
 
 - **`emails`** — one document per registered voter: `{ email: string, voted: boolean }`.
   A ballot is only accepted for an email that exists here with `voted: false`.
+  Emails are stored trimmed and lowercased, matching `normalizeEmail`.
 - **`votes`** — one document per selection: `{ vote: string }`. A voter choosing
   three candidates writes three documents.
 
 ## Project structure
 
 ```
+scripts/
+  voters.json       Homeowner roster (unit, name, email)
+  seed-voters.mjs   Idempotent seeder for the `emails` collection
 src/
   components/       Feature components (ballot, results, background)
     ui/             Presentational primitives (Button, Alert, TextField, Icons)
@@ -51,12 +56,28 @@ src/
 Components stay presentational: all Firestore access is isolated in
 `lib/votingService.ts`, and all ballot rules live in `hooks/useBallot.ts`.
 
+## Voter roster
+
+`scripts/voters.json` is the source of truth for who may vote: one entry per
+unit with `unit`, `name`, and `email`. Only the email reaches Firestore — the
+unit and name are there so the roster stays readable.
+
+```bash
+pnpm seed:voters -- --dry-run   # report what would change
+pnpm seed:voters                # write the missing voters
+```
+
+The seeder normalizes each address and skips any that already exist, so it is
+safe to re-run after adding rows to the roster.
+
 ## Ballot rules
 
 - The email must exist in `emails` and must not have voted already.
 - Between 1 and 3 selections are required; the UI disables further options once
   three are picked, and submission re-validates the limit.
-- A checked write-in slot must contain a name; write-ins are title-cased.
+- A write-in slot is selected by clicking anywhere on its row or by typing in
+  it; the checkbox clears it. A selected slot must contain a name, and write-ins
+  are title-cased.
 
 ## Dependencies
 
